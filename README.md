@@ -20,9 +20,14 @@ npm run build    # 輸出到 dist/
 `predev` / `prebuild` 會把 pdf.js 的 CJK 字型對照表（`cmaps`）與標準字型複製到 `public/`（不進版控），
 讓中文 PDF 預覽不必連外部 CDN。
 
-## 部署到 Netlify
+## 部署
 
-連結 GitHub 倉庫即可，`netlify.toml` 已設定：build 指令 `npm run build`、發布資料夾 `dist`、Node 22。
+**GitHub Pages（目前使用）**：推送到 `main` 會由 `.github/workflows/deploy.yml` 自動建置並發布。
+第一次需要在倉庫 Settings → Pages 把 Source 設為 **GitHub Actions**。
+網址：`https://cismgpyrbo.github.io/pdf-toolbox/`
+
+**Netlify（之後想用再接）**：連結 GitHub 倉庫即可，`netlify.toml` 已設定（build 指令 `npm run build`、發布資料夾 `dist`、Node 22）。
+GitHub Pages 的網址帶倉庫名稱，所以 CI 會用 `VITE_BASE=/pdf-toolbox/` 建置；本機與 Netlify 不設定，預設為 `/`。
 
 ## 技術
 
