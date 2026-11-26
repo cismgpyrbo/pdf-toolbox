@@ -71,11 +71,10 @@ export async function processPDFFiles(files: File[]): Promise<PDFProcessingResul
   return { pages, errors }
 }
 
-export async function exportPDF(
-  pages: Array<{ pageNumber: number; originalFile: File; rotation: number }>,
-  loadedFiles: File[],
-  filename: string,
-): Promise<void> {
+type ExportPage = { pageNumber: number; originalFile: File; rotation: number }
+
+// 依目前的頁面順序與旋轉組出新的 PDF（只在記憶體裡，不下載）。
+export async function buildPDFBytes(pages: ExportPage[], loadedFiles: File[]): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
 
   // 以 File 物件當 key（不是檔名），避免兩個同名檔案互相覆蓋。
@@ -99,13 +98,21 @@ export async function exportPDF(
     pdfDoc.addPage(copiedPage)
   }
 
-  const pdfBytes = await pdfDoc.save()
+  return pdfDoc.save()
+}
+
+export function withPdfExtension(filename: string): string {
+  return filename.endsWith(".pdf") ? filename : filename + ".pdf"
+}
+
+export async function exportPDF(pages: ExportPage[], loadedFiles: File[], filename: string): Promise<void> {
+  const pdfBytes = await buildPDFBytes(pages, loadedFiles)
   const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" })
   const url = URL.createObjectURL(blob)
 
   const a = document.createElement("a")
   a.href = url
-  a.download = filename.endsWith(".pdf") ? filename : filename + ".pdf"
+  a.download = withPdfExtension(filename)
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)

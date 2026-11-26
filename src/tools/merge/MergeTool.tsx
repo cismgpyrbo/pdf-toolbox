@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import { Download, FileText, Zap, Shield, Globe } from 'lucide-react';
+import { Download, FileText, Zap, Shield, Globe, PenLine } from 'lucide-react';
 import { FileUploader } from './components/FileUploader';
 import { FileList } from './components/FileList';
 import { MergeProgress } from './components/MergeProgress';
 import { PDFFile, MergeProgress as MergeProgressType } from './types';
 import { mergePDFs, downloadBlob } from './utils/pdfUtils';
+import { sendToEditor } from '@/shared/editorHandoff';
 
 export default function MergeTool() {
   const [files, setFiles] = useState<PDFFile[]>([]);
@@ -27,7 +28,7 @@ export default function MergeTool() {
     setFiles(reorderedFiles);
   }, []);
 
-  const handleMergePDFs = useCallback(async () => {
+  const handleMergePDFs = useCallback(async (target: 'download' | 'editor') => {
     if (files.length < 2) return;
 
     setMergeProgress({
@@ -46,9 +47,13 @@ export default function MergeTool() {
         }));
       });
 
-      const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-      downloadBlob(blob, `合併PDF-${timestamp}.pdf`);
+      const fileName = `合併PDF-${timestamp}.pdf`;
+      if (target === 'editor') {
+        sendToEditor(new File([mergedPdfBytes], fileName, { type: 'application/pdf' }));
+      } else {
+        downloadBlob(new Blob([mergedPdfBytes], { type: 'application/pdf' }), fileName);
+      }
 
       // 保持進度視窗顯示一段時間以顯示完成狀態
       setTimeout(() => {
@@ -140,9 +145,9 @@ export default function MergeTool() {
               />
               
               {files.length >= 2 && (
-                <div className="mt-8 flex justify-center">
+                <div className="mt-8 flex flex-wrap justify-center gap-4">
                   <button
-                    onClick={handleMergePDFs}
+                    onClick={() => handleMergePDFs('download')}
                     disabled={mergeProgress.isProcessing}
                     className="
                       inline-flex items-center space-x-2 px-8 py-4 bg-blue-600 text-white font-medium rounded-xl
@@ -153,6 +158,19 @@ export default function MergeTool() {
                   >
                     <Download className="w-5 h-5" />
                     <span>合併並下載PDF</span>
+                  </button>
+                  <button
+                    onClick={() => handleMergePDFs('editor')}
+                    disabled={mergeProgress.isProcessing}
+                    className="
+                      inline-flex items-center space-x-2 px-8 py-4 bg-white text-blue-700 font-medium rounded-xl
+                      border-2 border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500
+                      focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200
+                      shadow-lg hover:shadow-xl transform hover:scale-105
+                    "
+                  >
+                    <PenLine className="w-5 h-5" />
+                    <span>合併並送到編輯</span>
                   </button>
                 </div>
               )}

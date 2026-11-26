@@ -259,6 +259,26 @@ export function usePDFProcessor() {
     [pdfPages, loadedFiles],
   )
 
+  // 組出目前頁面的 PDF 檔（不下載），給「送到編輯」用。
+  const buildPDFFile = useCallback(
+    async (filename: string): Promise<File> => {
+      if (pdfPages.length === 0) {
+        throw new Error("沒有頁面可以送出")
+      }
+
+      setIsLoading(true)
+
+      try {
+        const { buildPDFBytes, withPdfExtension } = await import("../lib/pdf-processor")
+        const bytes = await buildPDFBytes(pdfPages, loadedFiles)
+        return new File([new Uint8Array(bytes)], withPdfExtension(filename), { type: "application/pdf" })
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [pdfPages, loadedFiles],
+  )
+
   return {
     pdfPages,
     selectedPages,
@@ -275,5 +295,6 @@ export function usePDFProcessor() {
     deleteSelected,
     reorderPages,
     exportPDF,
+    buildPDFFile,
   }
 }

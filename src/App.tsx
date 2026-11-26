@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { FileStack, LayoutGrid, GitCompare, PenLine, Loader2 } from 'lucide-react';
 import { Toaster } from '@/components/toast';
 import { cn } from '@/lib/cn';
+import { onEditorHandoff } from '@/shared/editorHandoff';
 
 // 各工具用到才載入，首頁不會一次下載全部程式。
 const tools = [
@@ -28,6 +29,9 @@ export default function App() {
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  // 其他分頁按「送到編輯」時，切到編輯分頁（檔案由編輯分頁自己接收）。
+  useEffect(() => onEditorHandoff(() => select('editor')), []);
 
   const select = (id: ToolId) => {
     setActive(id);

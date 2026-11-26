@@ -1,9 +1,10 @@
 
 import { useState } from "react"
-import { Grid2x2 as Grid, List, Download } from "lucide-react"
+import { Grid2x2 as Grid, List, Download, PenLine } from "lucide-react"
 import { Button } from "@/components/ui"
 import { Card, CardContent } from "@/components/ui"
 import { toast } from "@/components/toast"
+import { sendToEditor } from "@/shared/editorHandoff"
 import { PDFUploader } from "./components/pdf-uploader"
 import { PDFPageGridVirtualized } from "./components/pdf-page-grid-virtualized"
 import { PDFControls } from "./components/pdf-controls"
@@ -28,6 +29,7 @@ export default function PageAdjustTool() {
     deleteSelected,
     reorderPages,
     exportPDF,
+    buildPDFFile,
   } = usePDFProcessor()
 
   const [currentView, setCurrentView] = useState<"grid" | "horizontal">("grid")
@@ -73,6 +75,23 @@ export default function PageAdjustTool() {
     } catch (error) {
       toast({
         title: "匯出失敗",
+        description: error instanceof Error ? error.message : "未知錯誤",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleSendToEditor = async () => {
+    try {
+      const file = await buildPDFFile(exportName)
+      sendToEditor(file)
+      toast({
+        title: "已送到編輯",
+        description: `${file.name}（${pdfPages.length} 頁）已送到編輯分頁`,
+      })
+    } catch (error) {
+      toast({
+        title: "送到編輯失敗",
         description: error instanceof Error ? error.message : "未知錯誤",
         variant: "destructive",
       })
@@ -170,6 +189,16 @@ export default function PageAdjustTool() {
               >
                 <Download className="w-5 h-5 mr-2" />
                 匯出PDF
+              </Button>
+              <Button
+                onClick={handleSendToEditor}
+                disabled={isLoading}
+                size="lg"
+                variant="outline"
+                className="ml-4 border-2 border-green-500 px-8 py-3 text-lg text-green-700 shadow-lg hover:bg-green-50"
+              >
+                <PenLine className="w-5 h-5 mr-2" />
+                送到編輯
               </Button>
             </CardContent>
           </Card>

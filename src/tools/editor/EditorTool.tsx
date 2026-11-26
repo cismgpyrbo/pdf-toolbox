@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Button, Modal } from '@/components/ui';
+import { onEditorHandoff, takePendingEditorFile } from '@/shared/editorHandoff';
 import { usePDFEditor } from './hooks/usePDFEditor';
 import { PDFUploader } from './components/PDFUploader';
 import { Header } from './components/Header';
@@ -18,6 +20,45 @@ export default function EditorTool() {
   const handleNewDocument = () => {
     setShowUploader(true);
   };
+
+  // 其他分頁送來的檔案：編輯區是空的就直接開；已有文件就先問要不要取代。
+  const [incoming, setIncoming] = useState<File | null>(null);
+  const hasDocument = !showUploader && state.pages.length > 0;
+  const receiveRef = useRef<() => void>(() => {});
+  receiveRef.current = () => {
+    const file = takePendingEditorFile();
+    if (!file) return;
+    if (hasDocument) setIncoming(file);
+    else handleFileUpload(file);
+  };
+  useEffect(() => {
+    const receive = () => receiveRef.current();
+    receive(); // 編輯分頁是在收到檔案之後才第一次載入時，檔案已經在等了
+    return onEditorHandoff(receive);
+  }, []);
+
+  const replaceDialog = (
+    <Modal
+      open={incoming !== null}
+      onClose={() => setIncoming(null)}
+      title="取代目前編輯中的文件？"
+      description={`編輯區目前的內容會被「${incoming?.name ?? ''}」取代，未匯出的修改會消失，也無法復原。`}
+    >
+      <div className="mt-6 flex justify-end gap-2">
+        <Button variant="outline" onClick={() => setIncoming(null)}>
+          取消
+        </Button>
+        <Button
+          onClick={() => {
+            if (incoming) handleFileUpload(incoming);
+            setIncoming(null);
+          }}
+        >
+          取代
+        </Button>
+      </div>
+    </Modal>
+  );
 
   const currentPage = state.pages.find(page => page.id === state.currentPageId);
   const currentPageIndex = state.pages.findIndex(page => page.id === state.currentPageId);
@@ -146,6 +187,7 @@ export default function EditorTool() {
           zoom={state.zoom}
         />
       </div>
+      {replaceDialog}
     </div>
   );
 }
