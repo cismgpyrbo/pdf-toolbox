@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { MousePointer, Type, CreditCard as Edit3, Minus, Eraser, Grid3x3 as Grid3X3, Download, Undo, Redo, ZoomIn, ZoomOut } from 'lucide-react';
-import { ExportDialog } from './ExportDialog';
+import { ExportDialog, type ExportMode } from './ExportDialog';
 
 interface EditingToolsProps {
   selectedTool: 'text' | 'edit-text' | 'line' | 'eraser' | 'table';
   onToolSelect: (tool: 'text' | 'edit-text' | 'line' | 'eraser' | 'table') => void;
-  onExport: (paperSize: string) => void;
+  onExport: (paperSize: string, mode: ExportMode) => void;
   onUndo?: () => void;
   onRedo?: () => void;
   onZoomIn?: () => void;
@@ -165,8 +165,8 @@ export const EditingTools: React.FC<EditingToolsProps> = ({
       <ExportDialog
         isOpen={showExportDialog}
         isLoading={isLoading}
-        onExport={(paperSize) => {
-          onExport(paperSize);
+        onExport={(paperSize, mode) => {
+          onExport(paperSize, mode);
           setShowExportDialog(false);
         }}
         onClose={() => setShowExportDialog(false)}

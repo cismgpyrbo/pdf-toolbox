@@ -17,10 +17,12 @@ export const PAPER_SIZES: PaperSize[] = [
   { label: '原始大小', value: 'original', width: 0, height: 0 },
 ];
 
+export type ExportMode = 'vector' | 'raster';
+
 interface ExportDialogProps {
   isOpen: boolean;
   isLoading: boolean;
-  onExport: (paperSize: string) => void;
+  onExport: (paperSize: string, mode: ExportMode) => void;
   onClose: () => void;
 }
 
@@ -30,7 +32,8 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
   onExport,
   onClose
 }) => {
-  const [selectedSize, setSelectedSize] = useState('a4');
+  const [selectedSize, setSelectedSize] = useState('original');
+  const [mode, setMode] = useState<ExportMode>('vector');
 
   if (!isOpen) return null;
 
@@ -84,6 +87,37 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-3">
+              匯出方式
+            </label>
+            <div className="space-y-2">
+              {([
+                ['vector', '保留原始內容（建議）', '原本的文字、連結、書籤維持不變，編輯內容以向量加上。'],
+                ['raster', '整頁影像化', '每頁轉成圖片，文字無法選取或搜尋；只在上面方式有問題時使用。'],
+              ] as const).map(([value, title, note]) => (
+                <label
+                  key={value}
+                  className="flex items-start p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                >
+                  <input
+                    type="radio"
+                    name="export-mode"
+                    value={value}
+                    checked={mode === value}
+                    onChange={() => setMode(value)}
+                    disabled={isLoading}
+                    className="w-4 h-4 mt-0.5 text-blue-600"
+                  />
+                  <span className="ml-3 flex-1">
+                    <span className="block text-sm text-gray-900">{title}</span>
+                    <span className="block text-xs text-gray-500">{note}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-xs text-blue-800">
               <span className="font-semibold">提示：</span> 選擇「原始大小」將保持PDF的原始尺寸。其他選項會調整至相應的紙張規格。
@@ -100,7 +134,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
             取消
           </button>
           <button
-            onClick={() => onExport(selectedSize)}
+            onClick={() => onExport(selectedSize, mode)}
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
           >

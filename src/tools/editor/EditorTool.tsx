@@ -176,7 +176,7 @@ export default function EditorTool() {
         <EditingTools
           selectedTool={state.selectedTool}
           onToolSelect={actions.setSelectedTool}
-          onExport={(paperSize) => actions.exportPDF(paperSize)}
+          onExport={(paperSize, mode) => actions.exportPDF(paperSize, mode)}
           onUndo={actions.undo}
           onRedo={actions.redo}
           onZoomIn={actions.zoomIn}

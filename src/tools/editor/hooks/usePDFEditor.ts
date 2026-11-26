@@ -3,6 +3,8 @@ import { EditorState, PDFPage, TextElement, ImageElement, LineElement, TableElem
 import { openPdf } from '@/shared/pdfjs';
 import { PDFDocument, rgb } from 'pdf-lib';
 import { saveAs } from 'file-saver';
+import { toast } from '@/components/toast';
+import { exportVector } from '../lib/exportVector';
 
 export const usePDFEditor = () => {
   const [state, setState] = useState<EditorState>({
@@ -21,6 +23,8 @@ export const usePDFEditor = () => {
 
   const canvasRefs = useRef<Record<string, HTMLCanvasElement>>({});
   const pdfDocRef = useRef<any>(null);
+  // pdf.js 會接手（分離）傳入的 buffer，所以另外留一份給向量匯出使用。
+  const originalBytesRef = useRef<ArrayBuffer | null>(null);
   const DISPLAY_SCALE = 1.5;
   const EXPORT_SCALE = 3;
 
@@ -229,6 +233,7 @@ export const usePDFEditor = () => {
     
     try {
       const arrayBuffer = await file.arrayBuffer();
+      originalBytesRef.current = arrayBuffer.slice(0);
       const pdf = await openPdf(arrayBuffer);
       pdfDocRef.current = pdf;
       const pages: PDFPage[] = [];
@@ -683,7 +688,7 @@ export const usePDFEditor = () => {
     return scale;
   };
 
-  const exportPDF = useCallback(async (paperSize: string = 'a4') => {
+  const exportRaster = useCallback(async (paperSize: string = 'a4') => {
     if (state.pages.length === 0) return;
 
     setState(prev => ({ ...prev, isLoading: true }));
@@ -945,6 +950,45 @@ export const usePDFEditor = () => {
       setState(prev => ({ ...prev, isLoading: false }));
     }
   }, [state.pages, state.textElements, state.imageElements, state.lineElements, state.tableElements]);
+
+  const exportPDF = useCallback(async (paperSize: string = 'a4', mode: 'vector' | 'raster' = 'vector') => {
+    if (state.pages.length === 0) return;
+    if (mode === 'raster' || !originalBytesRef.current) return exportRaster(paperSize);
+
+    setState(prev => ({ ...prev, isLoading: true }));
+    try {
+      const { bytes, missingChars } = await exportVector({
+        original: originalBytesRef.current,
+        pages: state.pages,
+        textElements: state.textElements,
+        imageElements: state.imageElements,
+        lineElements: state.lineElements,
+        tableElements: state.tableElements,
+        displayScale: DISPLAY_SCALE,
+        paperSize,
+        fontUrl: `${import.meta.env.BASE_URL}fonts/NotoSansTC-subset.ttf`,
+      });
+      saveAs(new Blob([new Uint8Array(bytes)], { type: 'application/pdf' }), '編輯後的文件.pdf');
+      if (missingChars.length > 0) {
+        toast({
+          title: '部分文字無法顯示',
+          description: `內建字型沒有這些字，匯出後會是空白：${missingChars.slice(0, 20).join(' ')}`,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('向量匯出失敗，改用整頁影像化：', error);
+      toast({
+        title: '無法保留原始內容，改用整頁影像化匯出',
+        description: '這個檔案不適合向量匯出（例如已加密或含旋轉頁面）。匯出的檔案文字將無法選取。',
+        variant: 'destructive',
+      });
+      setState(prev => ({ ...prev, isLoading: false }));
+      return exportRaster(paperSize);
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  }, [state.pages, state.textElements, state.imageElements, state.lineElements, state.tableElements, exportRaster]);
 
   return {
     state,
