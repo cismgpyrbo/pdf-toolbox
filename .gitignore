@@ -4,3 +4,4 @@ dist
 *.local
 public/cmaps
 public/standard_fonts
+public/tesseract

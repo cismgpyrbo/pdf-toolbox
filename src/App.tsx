@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { FileStack, LayoutGrid, Minimize2, GitCompare, PenLine, Loader2 } from 'lucide-react';
+import { FileStack, LayoutGrid, Minimize2, ScanText, GitCompare, PenLine, Loader2 } from 'lucide-react';
 import { Toaster } from '@/components/toast';
 import { cn } from '@/lib/cn';
 import { onEditorHandoff } from '@/shared/editorHandoff';
@@ -9,6 +9,7 @@ const tools = [
   { id: 'merge', label: '合併', Icon: FileStack, Component: lazy(() => import('./tools/merge/MergeTool')) },
   { id: 'pages', label: '頁面調整', Icon: LayoutGrid, Component: lazy(() => import('./tools/pageadjust/PageAdjustTool')) },
   { id: 'compress', label: '壓縮', Icon: Minimize2, Component: lazy(() => import('./tools/compress/CompressTool')) },
+  { id: 'ocr', label: 'OCR', Icon: ScanText, Component: lazy(() => import('./tools/ocr/OcrTool')) },
   { id: 'compare', label: '比對', Icon: GitCompare, Component: lazy(() => import('./tools/compare/CompareTool')) },
   { id: 'editor', label: '編輯', Icon: PenLine, Component: lazy(() => import('./tools/editor/EditorTool')) },
 ] as const;

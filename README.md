@@ -1,12 +1,13 @@
 # PDF 工具箱
 
-四個 PDF 工具整合成一個網站，分頁切換。**所有處理都在瀏覽器內完成，檔案不會上傳到任何伺服器。**
+PDF 工具整合成一個網站，分頁切換。**所有處理都在瀏覽器內完成，檔案不會上傳到任何伺服器。**
 
 | 分頁 | 功能 | 來源倉庫 |
 |---|---|---|
 | 合併 | 多個 PDF 合併成一份 | `pdf` |
 | 頁面調整 | 頁面選取、旋轉、刪除、拖曳排序、匯出 | `-PDF-page-adjustment-tool` |
 | 壓縮 | 基本優化（保留文字）或影像壓縮（每頁轉 JPEG，三種畫質）、多檔、ZIP 打包；壓縮後沒有變小就保留原檔 | 自行提供的 `pdf-compressor.html` |
+| OCR | 掃描檔或圖片（PDF、JPG、PNG）轉成可搜尋的 PDF，繁體中文＋英文，保留原頁面大小，可中途停止 | 新增（tesseract.js，辨識引擎與語言資料自行託管） |
 | 比對 | 兩份 PDF 文字差異、相似度、匯出 TXT / JSON / CSV | `v0-pdf-comparison-tool` |
 | 編輯 | 加文字、線條、表格、橡皮擦、復原重做、匯出 | `PDF-Editor` |
 
@@ -22,7 +23,7 @@ npm run build    # 輸出到 dist/
 ```
 
 `predev` / `prebuild` 會把 pdf.js 的 CJK 字型對照表（`cmaps`）與標準字型複製到 `public/`（不進版控），
-讓中文 PDF 預覽不必連外部 CDN。
+讓中文 PDF 預覽不必連外部 CDN。OCR 的辨識引擎與語言資料（約 16 MB）同樣在建置時複製到 `public/tesseract/`（不進版控）。
 
 ## 部署
 
@@ -53,4 +54,4 @@ Vite + React 18 + TypeScript + Tailwind CSS 3、`pdf-lib`（產生 PDF）、`pdf
 
 ## 已知狀況
 
-- **OCR 尚未實作。** 原本 `PDF-Editor` 只在 package.json 列了 `tesseract.js`，原始碼中沒有任何 OCR 功能，所以沒有可搬的程式。
+- **OCR**：原本各倉庫都沒有可搬的 OCR 程式，是新寫的。輸出檔會比原檔大（保留原圖加文字層）；辨識結果可能有錯字，重要內容請核對。
