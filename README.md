@@ -6,6 +6,7 @@
 |---|---|---|
 | 合併 | 多個 PDF 合併成一份 | `pdf` |
 | 頁面調整 | 頁面選取、旋轉、刪除、拖曳排序、匯出 | `-PDF-page-adjustment-tool` |
+| 壓縮 | 基本優化（保留文字）或影像壓縮（每頁轉 JPEG，三種畫質）、多檔、ZIP 打包；壓縮後沒有變小就保留原檔 | 自行提供的 `pdf-compressor.html` |
 | 比對 | 兩份 PDF 文字差異、相似度、匯出 TXT / JSON / CSV | `v0-pdf-comparison-tool` |
 | 編輯 | 加文字、線條、表格、橡皮擦、復原重做、匯出 | `PDF-Editor` |
 
